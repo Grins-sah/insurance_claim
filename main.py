@@ -1,6 +1,8 @@
-def main():
-    print("Hello from insurance-claim!")
-
+# fastapi pending
+from routes import detect_vehicle
 
 if __name__ == "__main__":
-    main()
+    print("Analyzing image...")
+    result = detect_vehicle.detect("sample.jpeg")
+    print("Results:")
+    print(result)

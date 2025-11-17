@@ -31,4 +31,4 @@ def detect(image_path):
     return vehicle_counter, image_size, vehicle_data
 
 if __name__ == "__main__":
-    print(detect('/home/vedev/Downloads/car.jpeg'))
+    print(detect('image_path_here'))
