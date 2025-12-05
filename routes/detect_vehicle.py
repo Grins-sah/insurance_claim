@@ -19,6 +19,7 @@ def detect(image_path):
     vehicle_counter = 0
     vehicle_data = []
     result = model(image_path)[0]
+    result.show()
     image_size = result.orig_shape
     for i in result.boxes:
         if i.cls.item() in filter_classes:
