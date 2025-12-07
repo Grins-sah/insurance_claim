@@ -1,8 +1,11 @@
+import os
 from ultralytics import YOLO
 
 # using small model with around 80 classes
 # class 2: car, 7: truck
-model = YOLO("yolov5su.pt")
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+model_path = os.path.join(BASE_DIR, "weights", "yolov5su.pt")
+model = YOLO(model_path)
 filter_classes = [2, 7]
 
 def detect(image_path):

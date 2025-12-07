@@ -5,7 +5,8 @@ import tensorflow as tf
 from PIL import Image, ImageDraw, ImageFont
 
 # Define the path to the model
-MODEL_PATH = "best-fp16.tflite"
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+MODEL_PATH = os.path.join(BASE_DIR, "weights", "best-fp16.tflite")
 
 # Class names for the YOLO model
 CLASS_NAMES = [
@@ -200,11 +201,11 @@ def analyze_and_draw(image_path: str, output_image_dir: str = "output_images") -
     # Draw bounding boxes on the original image
     draw = ImageDraw.Draw(original_img)
     try:
-        font = ImageFont.truetype("DejaVuSans.ttf", 40)
+        font = ImageFont.truetype("arial.ttf", 40)
     except IOError:
         print(
-            "Warning: 'DejaVuSans.ttf' not found. Falling back to default font. "
-            "Font scaling may not work as expected. Please install ttf-dejavu."
+            "Warning: 'arial.ttf' not found. Falling back to default font. "
+            "Font scaling may not work as expected. Please install ttf-arial."
         )
         font = ImageFont.load_default()
 

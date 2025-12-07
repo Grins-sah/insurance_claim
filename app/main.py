@@ -1,11 +1,15 @@
 # fastapi pending
 import os
+import sys
 
-from model_analyzer import analyze_and_draw
+# Add the project root to sys.path to allow imports from app
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from app.services.model_analyzer import analyze_and_draw
 
 if __name__ == "__main__":
     sample_image_path = "sample.jpeg"
-    output_dir = "insurance_claim/output_images"
+    output_dir = "./output"
 
     print(f"Analyzing image: {sample_image_path}")
     vehicle_count, img_dims, detections, annotated_img_path = analyze_and_draw(
