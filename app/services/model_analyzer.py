@@ -251,7 +251,7 @@ def analyze_and_draw(image_path: str, output_image_dir: str = "output_images") -
         draw.text((text_x, text_y), label, fill="white", font=font)
 
     # Save the image with bounding boxes
-    original_img.save(output_image_path)
+    original_img.show();
     print(
         f"\nOutput image with detections saved to {os.path.abspath(output_image_path)}"
     )
