@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from app.routes.detect_vehicle import detect
 app = FastAPI()
+from fastapi import APIRouter, HTTPException
+from bson import ObjectId
+from app.database import db
 from fastapi.middleware.cors import CORSMiddleware
 from app.services.model_analyzer import analyze_and_draw
 app.add_middleware(
@@ -29,9 +32,26 @@ def orientation_detection_endpoint():
         "detections": detections,
         "annotated_image_path": annotated_img_path
     }
+
+
+def serialize_doc(doc):
+    if doc:
+        doc['_id'] = str(doc['_id'])
+    return doc
+
+@app.get("/uploads/{object_id}")
+async def get_upload_data(object_id: str):
+    try:
+        oid = ObjectId(object_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid ObjectId format")
+    document = db.uploads.find_one({"_id": oid}) 
+    if not document:
+        raise HTTPException(status_code=404, detail="File data not found")
+    return serialize_doc(document)
 # pending endpoints for insurance claim processing and report generation
 
-# 1. document upload endpoint
-# 2. claim processing endpoint
-# 3. annomaly detection endpoint
-# 4. report generation endpointgit
+# 1. document upload endpoint (vedant) ,rc book , chassis number
+# 2. claim processing endpoint         (anush , ayush)
+# 3. annomaly detection endpoint 
+# 4. report generation endpoint git (anush , ayush)
