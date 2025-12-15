@@ -2,6 +2,7 @@ from langchain_core.prompts import PromptTemplate
 HEALTH_CLAIM_PROMPT = PromptTemplate(
     input_variables=["context", "claim_details"],
     template="""
+    /no_thinking
     You are an expert Health Insurance Claims Officer and Fraud Detection Specialist. 
     Your task is to analyze a health insurance claim based on the provided Policy Context and the Claim Documents.
 
@@ -31,5 +32,6 @@ HEALTH_CLAIM_PROMPT = PromptTemplate(
 
     **Suggestion:**
     [Actionable advice for the user or officer]
+    /end_no_thinking
     """
 )

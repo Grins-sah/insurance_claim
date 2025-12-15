@@ -7,7 +7,7 @@ hf_api_token = os.getenv("HF_API_TOKEN")
 
 class QueryHuggingFace:
     def __init__(self, model_name="Qwen/Qwen2.5-72B-Instruct"):
-        self.client = InferenceClient(model_name=model_name, token=hf_api_token)
+        self.client = InferenceClient(model=model_name, token=hf_api_token)
 
     def query(self, prompt_text):
         messages = [

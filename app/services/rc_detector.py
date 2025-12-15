@@ -81,6 +81,7 @@ def call_llm(ocr_text):
             "maker_name": null,
             "model_name": null,
             "colour": null,
+            "address": null
           }}
         }}
 

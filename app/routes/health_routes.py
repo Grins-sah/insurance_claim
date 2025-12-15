@@ -1,26 +1,26 @@
 from fastapi import APIRouter, HTTPException
-from bson import ObjectId
-from app.database import db
+from typing import List
+from pydantic import BaseModel
 from app.services.health_service import HealthClaimService
 
 router = APIRouter()
 
-@router.post("/validate_claim/{object_id}")
-async def validate_claim_endpoint(object_id: str):
-    try:
-        oid = ObjectId(object_id)
-    except Exception:
-        raise HTTPException(status_code=400, detail="Invalid ObjectId format")
-    
-    document = db.uploads.find_one({"_id": oid})
-    if not document:
-        raise HTTPException(status_code=404, detail="File data not found")
-    
-    claim_text = document.get('extracted_text')
-    if not claim_text:
-        raise HTTPException(status_code=400, detail="No extracted text found in document")
+class ClaimRequest(BaseModel):
+    object_ids: List[str]
+    query: str
 
-    validator = HealthClaimService()
-    analysis = validator.validate_claim(claim_text, object_id)
+@router.post("/validate_claim")
+async def validate_claim_endpoint(request: ClaimRequest):
+    if not request.object_ids:
+        raise HTTPException(status_code=400, detail="object_ids list cannot be empty")
     
-    return {"analysis": analysis}
+    if not request.query:
+        raise HTTPException(status_code=400, detail="query cannot be empty")
+
+    try:
+        validator = HealthClaimService()
+        analysis = validator.validate_claim(request.query, request.object_ids)
+        
+        return {"analysis": analysis}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

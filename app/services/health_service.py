@@ -10,22 +10,24 @@ class HealthClaimService:
         self.index = self.pc.Index("insurance-claims")
         self.llm_client = QueryHuggingFace(model_name="Qwen/Qwen2.5-72B-Instruct")
 
-    def validate_claim(self, claim_text, object_id):
-        query_embedding = model.encode(claim_text[:1000]).tolist()
+    def validate_claim(self, query, object_ids):
+        query_embedding = model.encode(query).tolist()
 
-        # Filter by object_id to ensure we only get context from the relevant document
+        # Filter by object_ids to ensure we only get context from the relevant documents
+        filter_dict = {"source_id": {"$in": [str(oid) for oid in object_ids]}}
+        
         results = self.index.query(
             vector=query_embedding,
-            top_k=3,
+            top_k=5, # Increased top_k since we might have multiple documents
             include_metadata=True,
-            filter={"source_id": str(object_id)}
+            filter=filter_dict
         )
 
         context = "\n\n".join([match['metadata']['text'] for match in results['matches']])
 
         # 2. Generate Analysis
         # Format the prompt using the template
-        prompt = HEALTH_CLAIM_PROMPT.format(context=context, claim_details=claim_text)
+        prompt = HEALTH_CLAIM_PROMPT.format(context=context, claim_details=query)
         
         # Query the Hugging Face model
         response_content = self.llm_client.query(prompt)
