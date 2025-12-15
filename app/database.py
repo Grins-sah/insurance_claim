@@ -8,3 +8,4 @@ MONGO_URL = os.getenv("MONGO_URL")
 
 client = MongoClient(MONGO_URL)
 db = client.get_database() # The database name is in the connection string 'insurance'
+

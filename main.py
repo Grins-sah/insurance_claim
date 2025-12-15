@@ -1,11 +1,16 @@
 from fastapi import FastAPI
-from app.routes.detect_vehicle import detect
-app = FastAPI()
-from fastapi import APIRouter, HTTPException
-from bson import ObjectId
-from app.database import db
 from fastapi.middleware.cors import CORSMiddleware
-from app.services.model_analyzer import analyze_and_draw
+from app.database import db
+from bson import ObjectId
+from fastapi import HTTPException
+
+# Import Routers
+from app.routes.health_routes import router as health_router
+from app.routes.vehicle_routes import router as vehicle_router
+from app.routes.rag_routes import router as rag_router
+
+app = FastAPI()
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -13,26 +18,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-@app.get("/detect_vehicle")
-def detect_vehicle_endpoint():
-    vehicle_counter, image_size, vehicle_data = detect(r"A:\insurance_claim_project\sample.jpeg")
-    return {
-        "vehicle_counter": vehicle_counter,
-        "image_size": image_size,
-        "vehicle_data": vehicle_data
-    }
-@app.get("/orientation_detection")
-def orientation_detection_endpoint():
-    vehicle_count, img_dims, detections, annotated_img_path = analyze_and_draw(
-        r"A:\insurance_claim_project\sample.jpeg", "output_images"
-    )
-    return {
-        "vehicle_count": vehicle_count,
-        "image_dimensions": img_dims,
-        "detections": detections,
-        "annotated_image_path": annotated_img_path
-    }
 
+# Include Routers
+app.include_router(health_router, prefix="/health", tags=["Health Insurance"])
+app.include_router(vehicle_router, prefix="/vehicle", tags=["Vehicle Insurance"])
+app.include_router(rag_router, prefix="/rag", tags=["RAG Pipeline"])
 
 def serialize_doc(doc):
     if doc:
@@ -49,9 +39,5 @@ async def get_upload_data(object_id: str):
     if not document:
         raise HTTPException(status_code=404, detail="File data not found")
     return serialize_doc(document)
-# pending endpoints for insurance claim processing and report generation
 
-# 1. document upload endpoint (vedant) ,rc book , chassis number
-# 2. claim processing endpoint         (anush , ayush)
-# 3. annomaly detection endpoint 
-# 4. report generation endpoint git (anush , ayush)
+
