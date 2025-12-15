@@ -51,9 +51,9 @@ const AuthPage = () => {
                 }
                 sessionStorage.setItem('user-info',JSON.stringify(userDetails));
                 if(response.data.role=="customer"){
-                    navigate("/customer");
+                    navigate("/customer/dashboard");
                 }else{
-                    navigate("/authority");
+                    navigate("/authority/dashboard");
                 }
                 console.log(response.data.message)
             } catch (error) {
