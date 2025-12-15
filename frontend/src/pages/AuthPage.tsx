@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 // Single unified auth page (Customer / Insurance Authority)
 // Frontend only – no API calls
@@ -13,7 +13,7 @@ const AuthPage = () => {
   const [name,setName] = useState("");
   const [email,setEmail] = useState("");
   const [password,setPassword] = useState("");
-
+  const navigate = useNavigate();
 
 
   const handleSubmit = async(e: React.FormEvent<HTMLFormElement>)=>{
@@ -42,7 +42,19 @@ const AuthPage = () => {
                   password:password,
                  
                 })
-
+                const userDetails  = {
+                  name:response.data.name,
+                  email:response.data.email,
+                  userId:response.data.userId,
+                  role:response.data.role,
+                  token:response.data.token
+                }
+                sessionStorage.setItem('user-info',JSON.stringify(userDetails));
+                if(response.data.role=="customer"){
+                    navigate("/customer");
+                }else{
+                    navigate("/authority");
+                }
                 console.log(response.data.message)
             } catch (error) {
                 console.log(error);
