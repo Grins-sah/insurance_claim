@@ -3,7 +3,7 @@ import sys
 import numpy as np
 from skimage import io
 from external.vehicle_anomaly_model.custom import CustomConfig
-from external.vehicle_anomaly_model.model import model as modellib
+from external.vehicle_anomaly_model.model.model import model as modellib
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../external/vehicle_anomaly_model"))
 MODEL_WEIGHTS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../weights/mask_rcnn_coco.h5"))
