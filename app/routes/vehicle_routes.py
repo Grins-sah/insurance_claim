@@ -1,6 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile, File
 from app.routes.detect_vehicle import detect
 from app.services.model_analyzer import analyze_and_draw
+from app.services.vehicle_anomaly_service import vehicle_anomaly_service
+import shutil
+import os
 
 router = APIRouter()
 
@@ -31,3 +34,17 @@ def orientation_detection_endpoint():
 @router.post("/process_vehicle_claim")
 def process_vehicle_claim():
     return {"message": "Vehicle claim processing pipeline initiated (Pending Implementation)"}
+
+@router.post("/vehicle/anomaly-detection")
+def detect_vehicle_anomalies(file: UploadFile = File(...)):
+    temp_dir = "temp_uploads"
+    os.makedirs(temp_dir, exist_ok=True)
+    file_path = os.path.join(temp_dir, file.filename)
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    results = vehicle_anomaly_service.detect_anomalies(file_path)
+
+    os.remove(file_path)
+
+    return {"detections": results}

@@ -1,0 +1,3 @@
+[submodule "external/vehicle_anomaly_model"]
+	path = external/vehicle_anomaly_model
+	url = https://github.com/basel-ay/Automated-Car-Damage-Detection
