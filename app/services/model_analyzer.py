@@ -236,16 +236,25 @@ def analyze_and_draw(image_path: str, output_image_dir: str = "output_images") -
         # Calculate text background position with padding
         padding = 4
         text_bg_x1 = x1_pixel
-        text_bg_y1 = max(0, y1_pixel - text_height - padding * 2)
         text_bg_x2 = x1_pixel + text_width + padding * 2
-        text_bg_y2 = y1_pixel - padding
+
+        # Check if text fits above the box
+        if y1_pixel - text_height - padding * 2 < 0:
+            # Draw inside/below the top edge
+            text_bg_y1 = y1_pixel
+            text_bg_y2 = y1_pixel + text_height + padding * 2
+            text_y = y1_pixel + padding
+        else:
+            # Draw above
+            text_bg_y1 = y1_pixel - text_height - padding * 2
+            text_bg_y2 = y1_pixel
+            text_y = y1_pixel - text_height - padding
 
         # Draw filled rectangle for text background (matching bounding box color)
         draw.rectangle([text_bg_x1, text_bg_y1, text_bg_x2, text_bg_y2], fill="red")
 
         # Position text on top of the background
         text_x = x1_pixel + padding
-        text_y = max(0, y1_pixel - text_height - padding)
 
         # Draw text in white for better contrast
         draw.text((text_x, text_y), label, fill="white", font=font)
