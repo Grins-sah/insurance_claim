@@ -5,13 +5,18 @@ import App from './App.tsx'
 import { ThemeProvider } from './context/theme-context.tsx'
 import ClickSpark from './components/ClickSpark.tsx'
 import { BrowserRouter } from 'react-router-dom'
+import Context from './Context.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <ThemeProvider>
         <ClickSpark>
-          <App />
+          
+          <Context>
+              <App />
+          </Context>
+          
         </ClickSpark>
 
       </ThemeProvider>

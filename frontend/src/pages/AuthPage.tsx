@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+import { ContextAPI } from "@/Context";
 // Single unified auth page (Customer / Insurance Authority)
 // Frontend only – no API calls
 
@@ -14,7 +15,7 @@ const AuthPage = () => {
   const [email,setEmail] = useState("");
   const [password,setPassword] = useState("");
   const navigate = useNavigate();
-
+  const {loginBro} = useContext(ContextAPI);
 
   const handleSubmit = async(e: React.FormEvent<HTMLFormElement>)=>{
         e.preventDefault();
@@ -43,18 +44,14 @@ const AuthPage = () => {
                  
                 })
                 const userDetails  = {
-                  name:response.data.name,
-                  email:response.data.email,
-                  userId:response.data.userId,
-                  role:response.data.role,
-                  token:response.data.token
+                  name:response?.data?.name,
+                  email:response?.data?.email,
+                  userId:response?.data?.userId,
+                  role:response?.data?.role,
+                  token:response?.data?.token
                 }
-                sessionStorage.setItem('user-info',JSON.stringify(userDetails));
-                if(response.data.role=="customer"){
-                    navigate("/customer/dashboard");
-                }else{
-                    navigate("/authority/dashboard");
-                }
+                loginBro(userDetails);
+                
                 console.log(response.data.message)
             } catch (error) {
                 console.log(error);

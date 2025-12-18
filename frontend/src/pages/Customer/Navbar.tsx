@@ -1,7 +1,12 @@
-import React from "react";
+import { ContextAPI } from "@/Context";
+import React, { useContext, useEffect, useState } from "react";
 import { FiSearch, FiMenu, FiChevronDown } from "react-icons/fi";
 
 const Navbar = () => {
+
+    const {user}  = useContext(ContextAPI);
+    console.log(user)
+
   return (
     <header className="h-16 border-b border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 md:px-8 flex items-center justify-between sticky top-0 z-30 transition-colors duration-300">
       <div className="flex items-center gap-4">
@@ -25,11 +30,11 @@ const Navbar = () => {
         {/* User Profile Dropdown */}
         <div className="flex items-center gap-3 pl-4 border-l border-gray-200 dark:border-neutral-800 cursor-pointer group">
           <div className="text-right hidden sm:block">
-            <p className="text-sm font-semibold text-gray-900 dark:text-neutral-100">Alex Rivera</p>
-            <p className="text-xs text-gray-500 dark:text-neutral-400">Premium Member</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-neutral-100">{user?.name}</p>
+            {/* <p className="text-xs text-gray-500 dark:text-neutral-400">Premium Member</p> */}
           </div>
           <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold">
-            AR
+            {user?.name?.charAt(0).toUpperCase()}
           </div>
           <FiChevronDown className="text-gray-400 group-hover:text-indigo-500 transition-colors" />
         </div>

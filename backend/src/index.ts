@@ -5,6 +5,8 @@ import mongoose from "mongoose";
 import { userSchemaModel } from "./db.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import cloudinary from "./cloudinary.js";
+import upload from "./multer.js";
 
 dotenv.config();
 const app = express();
@@ -112,6 +114,50 @@ app.post("/api/auth/signin", async (req, res) => {
         })
     }
 })
+
+
+app.post(
+  "/api/upload/vehicle-photo",
+  upload.single("file"),
+  async (req, res) => {
+    try {
+      console.log("Backend hit");
+
+      if (!req.file) {
+        return res.status(400).json({ message: "No file provided" });
+      }
+
+      const field = req.body.field;
+      if (!field) {
+        return res.status(400).json({ message: "Field name missing" });
+      }
+
+      const result = await new Promise<any>((resolve, reject) => {
+        cloudinary.uploader
+          .upload_stream(
+            {
+              folder: `claims/vehicle-photos/${field}`,
+              resource_type: "image",
+            },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          )
+          .end(req?.file?.buffer); // ✅ binary buffer
+      });
+
+      return res.status(200).json({
+        url: result.secure_url,
+        publicId: result.public_id,
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Upload failed" });
+    }
+  }
+);
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT,()=>{
     console.log("server running on port - 3000")
