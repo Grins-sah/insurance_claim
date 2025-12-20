@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # Python Backend (FastAPI)
+  fastapi-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fastapi-app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    networks:
+      - insurance-network
+
+  # Node.js Backend (Express)
+  express-app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: express-app
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - PORT=3000
+    networks:
+      - insurance-network
+
+  # Frontend (Vite + Nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - express-app
+    networks:
+      - insurance-network
+
+networks:
+  insurance-network:
+    driver: bridge

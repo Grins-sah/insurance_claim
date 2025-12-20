@@ -16,7 +16,8 @@ app.use(express.json());
 app.use(cors());
 
 const connectMB = async () => {
-    await mongoose.connect("mongodb://localhost:27017/insurance")
+    const mongoUrl = process.env.MONGO_URL || "mongodb://localhost:27017/insurance";
+    await mongoose.connect(mongoUrl)
     console.log("Database connected...");
 }
 connectMB();
