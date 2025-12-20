@@ -11,13 +11,13 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <ThemeProvider>
-        <ClickSpark>
+        {/* <ClickSpark> */}
           
           <Context>
               <App />
           </Context>
           
-        </ClickSpark>
+        {/* </ClickSpark> */}
 
       </ThemeProvider>
 

@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 
 import { FiChevronRight, FiCheckCircle, FiUpload, FiFileText, FiMapPin, FiCalendar } from "react-icons/fi";
 import DashboardLayout from "./DashboardLayout";
 import axios from "axios";
+import { ContextAPI } from "@/Context";
 
 // --- Types ---
-type WizardStep = 1 | 2 | 3;
+type WizardStep = 1 | 2 | 3 | 4;
 type UploadedFile = {
   url: string;
   publicId: string;
@@ -107,7 +108,7 @@ const Step1PolicyDetails: React.FC<{ nextStep: () => void }> = ({ nextStep }) =>
           onClick={onSave}
           className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-medium transition shadow-md"
         >
-          Next: Documentation <FiChevronRight />
+          Next: Photos Verification <FiChevronRight />
         </button>
       </div>
     </div>
@@ -115,18 +116,22 @@ const Step1PolicyDetails: React.FC<{ nextStep: () => void }> = ({ nextStep }) =>
 };
 
 // --- STEP 2: Documentation and Evidence ---
-const Step2Documentation: React.FC<{
+const Step2Photos: React.FC<{
   nextStep: () => void;
   prevStep: () => void;
 }> = ({ nextStep, prevStep }) => {
 
-
+  const {user} = useContext(ContextAPI);
   const uploadFile = async (file: File, field: string) => {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("field", field);
     //console.log(formData )
-    const res = await axios.post("http://localhost:3000/api/upload/vehicle-photo", formData);
+    const res = await axios.post("http://localhost:3000/api/upload/vehicle-photo", formData,{
+      headers:{
+        "Authorization":user.token
+      }
+    });
     //console.log(res.data)
     if (!res) {
       throw new Error("Upload failed");
@@ -148,6 +153,7 @@ const Step2Documentation: React.FC<{
           //console.log(file)
           const uploaded = await uploadFile(file, key);
           console.log(uploaded?.url)
+          console.log(uploaded?._id)
           setVehiclePhotos((prev) => ({
             ...prev,
             [key]: uploaded,
@@ -173,6 +179,11 @@ const Step2Documentation: React.FC<{
   ].every((k) => vehiclePhotos[k as keyof VehiclePhotos]);
 
   const onSave = () => {
+
+    // before stroing it in sessionStorage scan through AI
+    // grins add api end points here
+
+    // to access the img cloudinary link console.log(vehiclePhotos.front?.url)
     sessionStorage.setItem(
       "step2-info",
       JSON.stringify({ vehiclePhotos })
@@ -240,11 +251,11 @@ const Step2Documentation: React.FC<{
         <ul className="text-sm space-y-1">
           {uploadedFiles.map(([key, file]) => (
             <li
-             
+
               // FIX 2: Add '_blank' to ensure it opens in a new tab
               onClick={() => window.open(file.url, "_blank")}
               key={key}
-              
+
               className="cursor-pointer flex items-center justify-between p-2 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg"
             >
               <span className="text-gray-900 dark:text-neutral-200">
@@ -272,7 +283,7 @@ const Step2Documentation: React.FC<{
           disabled={!allUploaded}
           className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-medium transition shadow-md disabled:opacity-50"
         >
-          Next: Review & Submit <FiChevronRight />
+          Next: AI Scan & Documentation <FiChevronRight />
         </button>
       </div>
     </div>
@@ -280,8 +291,244 @@ const Step2Documentation: React.FC<{
 };
 
 
-// --- STEP 3: Review and Submission ---
-const Step3Review: React.FC<{ prevStep: () => void }> = ({ prevStep }) => {
+// step 3
+
+type accidentDocument = {
+  rc: UploadedFile,
+  insurancePolicy: UploadedFile
+  drivingLicense: UploadedFile,
+  repairEstimate?: UploadedFile,
+  fir?: UploadedFile;
+}
+type theftDocuments = {
+  rc: UploadedFile,
+  insurancePolicy: UploadedFile
+  fir: UploadedFile;
+  allVehicleKeys: UploadedFile;           // mandatory (photo)
+  nonTraceableCertificate?: UploadedFile; // later stage
+  bankDetails: UploadedFile;              // mandatory
+}
+type thirdPartyDocuments = {
+  rc: UploadedFile,
+  insurancePolicy: UploadedFile
+  drivingLicense: UploadedFile;   // mandatory
+  fir: UploadedFile;              // mandatory
+  courtNotice?: UploadedFile;     // optional / later
+}
+
+type calamityDocuments = {
+  rc: UploadedFile,
+  insurancePolicy: UploadedFile
+  firOrFireReport: UploadedFile;  // mandatory
+  repairEstimate: UploadedFile;   // mandatory
+}
+type minorDamageDocuments = {
+  rc: UploadedFile,
+  insurancePolicy: UploadedFile
+  damageCloseUp: UploadedFile;    // mandatory
+}
+
+const Step3Documentation: React.FC<{
+  nextStep: () => void;
+  prevStep: () => void;
+}> = ({ nextStep, prevStep }) => {
+  const [type, setType] = useState("");
+  const [inciType, setInciType] = useState("");
+
+  useEffect(() => {
+    const raw = sessionStorage.getItem('step1-info');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      setType(parsed.type); // means Vehicle insurance 
+      setInciType(parsed.inciType); // its types like theft,accident etc.
+    }
+  }, [])
+
+   
+  if (type == "Vehicle Insurance") {
+    const render = () => {
+      switch (inciType) {
+
+        case "Accident / Damage Claim":
+          return
+
+        case "Theft Claim":
+          return
+
+        case "Third-Party Claim":
+          return
+
+        case "Fire / Natural Calamity":
+          return
+
+        case "Windshield / Minor Damage":
+          return
+      }
+    }
+  }
+  const uploadFile = async (file: File, field: string) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("field", field);
+    //console.log(formData )
+    const res = await axios.post("http://localhost:3000/api/upload/vehicle-photo", formData);
+    //console.log(res.data)
+    if (!res) {
+      throw new Error("Upload failed");
+    }
+
+    return res.data; // { url, publicId }
+  };
+
+  const [vehiclePhotos, setVehiclePhotos] = useState<VehiclePhotos>({});
+  const [uploading, setUploading] = useState<string | null>(null);
+
+  const handleFileChange =
+    (key: keyof VehiclePhotos) =>
+      async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        try {
+          setUploading(key);
+          //console.log(file)
+          const uploaded = await uploadFile(file, key);
+          console.log(uploaded?.url)
+          setVehiclePhotos((prev) => ({
+            ...prev,
+            [key]: uploaded,
+          }));
+        } catch (err) {
+          console.log(err);
+          alert("Upload failed. Try again.");
+        } finally {
+          setUploading(null);
+        }
+      };
+
+  const uploadedFiles = Object.entries(vehiclePhotos);
+  console.log(uploadedFiles);
+  const allUploaded = [
+    "front",
+    "rear",
+    "leftSide",
+    "rightSide",
+    "numberPlate",
+    "chassisNumber",
+    "odometer",
+  ].every((k) => vehiclePhotos[k as keyof VehiclePhotos]);
+
+  const onSave = () => {
+
+
+    sessionStorage.setItem(
+      "step2-info",
+      JSON.stringify({ vehiclePhotos })
+    );
+    nextStep();
+  };
+
+  useEffect(() => {
+    const raw = sessionStorage.getItem("step2-info");
+    if (!raw) return;
+
+    const detail = JSON.parse(raw);
+    if (detail?.vehiclePhotos) {
+      setVehiclePhotos(detail.vehiclePhotos);
+    }
+  }, []);
+
+  return (
+    <div className="space-y-6">
+      <h3 className="text-xl font-semibold text-gray-900 dark:text-neutral-100 mb-4">
+        2. Upload Vehicle Photos
+      </h3>
+
+      <div className="border border-dashed border-gray-300 dark:border-neutral-700 rounded-lg p-8 text-center bg-gray-50 dark:bg-neutral-800/50">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+          {[
+            ["front", "Front View"],
+            ["rear", "Rear View"],
+            ["leftSide", "Left Side"],
+            ["rightSide", "Right Side"],
+            ["numberPlate", "Number Plate"],
+            ["chassisNumber", "Chassis Number"],
+            ["odometer", "Odometer"],
+          ].map(([key, label]) => (
+            <label
+              key={key}
+              className="flex flex-col gap-1 text-left text-sm text-gray-600 dark:text-neutral-400"
+            >
+              {label}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange(key as keyof VehiclePhotos)}
+                className="block w-full text-sm file:mr-4 file:py-2 file:px-4
+                           file:rounded-lg file:border-0
+                           file:text-sm file:font-medium
+                           file:bg-indigo-50 file:text-indigo-600
+                           hover:file:bg-indigo-100"
+              />
+              {uploading === key && (
+                <span className="text-xs text-indigo-500">
+                  Uploading...
+                </span>
+              )}
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <h4 className="text-sm font-medium text-gray-700 dark:text-neutral-300">
+          Files Uploaded ({uploadedFiles.length})
+        </h4>
+
+        <ul className="text-sm space-y-1">
+          {uploadedFiles.map(([key, file]) => (
+            <li
+
+              // FIX 2: Add '_blank' to ensure it opens in a new tab
+              onClick={() => window.open(file.url, "_blank")}
+              key={key}
+
+              className="cursor-pointer flex items-center justify-between p-2 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg"
+            >
+              <span className="text-gray-900 dark:text-neutral-200">
+                <FiFileText className="inline mr-2" />
+                {key}
+              </span>
+              <span className="text-xs text-green-600 dark:text-green-400">
+                Uploaded
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="flex justify-between pt-4">
+        <button
+          onClick={prevStep}
+          className="flex items-center gap-2 text-gray-600 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-neutral-100 px-4 py-2.5 rounded-xl transition"
+        >
+          <FiChevronRight className="transform rotate-180" /> Back
+        </button>
+
+        <button
+          onClick={onSave}
+          disabled={!allUploaded}
+          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-medium transition shadow-md disabled:opacity-50"
+        >
+          Next: AI Scan & Documentation <FiChevronRight />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// --- STEP 4: Review and Submission ---
+const Step4Review: React.FC<{ prevStep: () => void }> = ({ prevStep }) => {
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleSubmit = () => {
@@ -373,9 +620,12 @@ const CreateClaimPage = () => {
       case 1:
         return <Step1PolicyDetails nextStep={nextStep} />;
       case 2:
-        return <Step2Documentation nextStep={nextStep} prevStep={prevStep} />;
+        return <Step2Photos nextStep={nextStep} prevStep={prevStep} />;
       case 3:
-        return <Step3Review prevStep={prevStep} />;
+        return <Step3Documentation nextStep={nextStep} prevStep={prevStep} />;
+
+      case 4:
+        return <Step4Review prevStep={prevStep} />;
       default:
         return <Step1PolicyDetails nextStep={nextStep} />;
     }
