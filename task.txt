@@ -1,0 +1,4 @@
+1. vehicle anomoly => nirav
+2. prompt refining 
+3. ppt completion
+4. medical documents 
