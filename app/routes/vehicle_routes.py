@@ -20,6 +20,7 @@ class DocumentRequest(BaseModel):
 class ClaimWorkflowRequest(BaseModel):
     image_ids: List[str]
     policy_id: str
+    user_description: str = "No description provided"
 
 def get_file_from_db(object_id: str, temp_dir: str) -> str:
     try:
@@ -189,7 +190,8 @@ def process_claim_workflow(request: ClaimWorkflowRequest):
         prompt = VEHICLE_CLAIM_PROMPT.format(
             context=context_text,
             vehicle_details=vehicle_details_str,
-            anomalies=anomalies_str
+            anomalies=anomalies_str,
+            user_description=request.user_description
         )
 
         report = hf_query.query(prompt)

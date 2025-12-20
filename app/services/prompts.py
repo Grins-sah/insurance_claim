@@ -51,14 +51,17 @@ HEALTH_CLAIM_PROMPT = PromptTemplate(
 )
 
 VEHICLE_CLAIM_PROMPT = PromptTemplate(
-    input_variables=["context", "vehicle_details", "anomalies"],
+    input_variables=["context", "vehicle_details", "anomalies", "user_description"],
     template="""
     /no_thinking
     You are an expert Vehicle Insurance Claims Officer and Damage Assessor.
-    Your task is to analyze a vehicle insurance claim based on the provided Policy Context, Vehicle Detection Data, and Anomaly Detection Reports.
+    Your task is to analyze a vehicle insurance claim based on the provided Policy Context, Vehicle Detection Data, Anomaly Detection Reports, and the User's Description.
 
     --- POLICY CONTEXT (Retrieved from Knowledge Base) ---
     {context}
+
+    --- USER CLAIM DESCRIPTION ---
+    {user_description}
 
     --- VEHICLE DETAILS (Detected) ---
     {vehicle_details}
