@@ -5,12 +5,16 @@ import App from './App';
 import { ThemeProvider } from './context/theme-context';
 import ClickSpark from './components/ClickSpark';
 import { BrowserRouter } from 'react-router-dom';
+import Context from './Context';
+
 createRoot(document.getElementById('root')).render(<StrictMode>
     <BrowserRouter>
       <ThemeProvider>
-        <ClickSpark>
-          <App />
-        </ClickSpark>
+        {/* <ClickSpark> */}
+          <Context>
+            <App />
+          </Context>
+        {/* </ClickSpark> */}
 
       </ThemeProvider>
 
