@@ -50,31 +50,31 @@ To run the entire stack (Frontend, Node.js Backend, Python Backend) using Docker
 
 ```mermaid
 graph TD
-    Client[Frontend (React)]
-    NodeAPI[Node.js Backend]
-    PyAPI[Python Backend (FastAPI)]
-    DB[(MongoDB)]
-    Pinecone[(Pinecone Vector DB)]
+    Client["Frontend (React)"]
+    NodeAPI["Node.js Backend"]
+    PyAPI["Python Backend (FastAPI)"]
+    DB[("MongoDB")]
+    Pinecone[("Pinecone Vector DB")]
 
     %% Frontend Interactions
-    Client -- Auth & Uploads --> NodeAPI
-    Client -- Analysis Requests --> PyAPI
+    Client -- "Auth & Uploads" --> NodeAPI
+    Client -- "Analysis Requests" --> PyAPI
     
     %% Node Backend Interactions
-    NodeAPI -- Store Metadata --> DB
+    NodeAPI -- "Store Metadata" --> DB
     
     %% Python Backend Interactions
-    subgraph Health_Pipeline [Health Insurance Pipeline]
-        PyAPI -- Extract Text --> BillParser[Bill Parser]
-        PyAPI -- Extract Text --> RxParser[Prescription Parser]
-        PyAPI -- RAG Search --> Pinecone
-        PyAPI -- Validate Claim --> LLM[LLM Analysis]
+    subgraph Health_Pipeline ["Health Insurance Pipeline"]
+        PyAPI -- "Extract Text" --> BillParser["Bill Parser"]
+        PyAPI -- "Extract Text" --> RxParser["Prescription Parser"]
+        PyAPI -- "RAG Search" --> Pinecone
+        PyAPI -- "Validate Claim" --> LLM["LLM Analysis"]
     end
     
-    subgraph Vehicle_Pipeline [Vehicle Insurance Pipeline]
-        PyAPI -- Detect Objects --> YOLO[YOLOv8]
-        PyAPI -- Check Orientation --> TFLite[Orientation Model]
-        PyAPI -- Detect Damage --> Anomaly[Anomaly Detector]
+    subgraph Vehicle_Pipeline ["Vehicle Insurance Pipeline"]
+        PyAPI -- "Detect Objects" --> YOLO["YOLOv8"]
+        PyAPI -- "Check Orientation" --> TFLite["Orientation Model"]
+        PyAPI -- "Detect Damage" --> Anomaly["Anomaly Detector"]
     end
     
     %% Data Access
