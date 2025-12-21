@@ -594,8 +594,8 @@ Upload a photo for vehicle claims.
 ├── notebooks/               # Prototyping notebooks
 └── pyproject.toml           # Dependency configuration
 ```
-
+ 
 ## Development Notes
 
-- **PDF Handling**: The system automatically detects PDF binary data in MongoDB `data` fields and uses `pypdf` to extract text before embedding.
-- **Model Weights**: Ensure `yolov5su.pt` and `best-fp16.tflite` are present in the `weights/` directory for vehicle analysis features to work.
+- **PDF Handling** : The system automatically detects PDF binary data in MongoDB `data` fields and uses `pypdf` to extract text before embedding.
+- **Model Weights** : Ensure `yolov5su.pt` and `best-fp16.tflite` are present in the `weights/` directory for vehicle analysis features to work.
