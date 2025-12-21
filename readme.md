@@ -571,7 +571,6 @@ Upload a photo for vehicle claims.
    MONGO_URL=mongodb://localhost:27017/insurance
    PINECONE_API_KEY=your_pinecone_key
    HF_API_TOKEN=your_huggingface_token
-   # OPENAI_API_KEY=... (Optional, if switching back to OpenAI)
    ```
 
 ## Project Structure
