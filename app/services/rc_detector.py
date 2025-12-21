@@ -3,8 +3,26 @@ import pytesseract
 import re
 import json
 import requests
+import os
+import platform
 from PIL import Image
 from datetime import datetime
+
+# Configure Tesseract path for Windows
+if platform.system() == "Windows":
+    # Check common installation paths
+    possible_paths = [
+        r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+        r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
+        os.getenv("TESSERACT_CMD", ""),
+        # Check if user somehow has it in venv (unlikely but possible if manual)
+        os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), ".venv", "Scripts", "tesseract.exe")
+    ]
+    
+    for path in possible_paths:
+        if path and os.path.exists(path):
+            pytesseract.pytesseract.tesseract_cmd = path
+            break
 
 OLLAMA_MODEL = "mistral:latest"
 OLLAMA_URL = "http://localhost:11434/api/generate"

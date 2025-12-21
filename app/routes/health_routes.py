@@ -14,8 +14,8 @@ router = APIRouter()
 class ClaimRequest(BaseModel):
     object_ids: List[str]
     query: str
-    medical_bill_data: Optional[Dict[str, Any]] = None
-    prescription_data: Optional[Dict[str, Any]] = None
+    medical_bill_ids: Optional[List[str]] = None
+    prescription_ids: Optional[List[str]] = None
 
 class DocumentRequest(BaseModel):
     object_id: str
@@ -91,15 +91,56 @@ async def validate_claim_endpoint(request: ClaimRequest):
     if not request.query:
         raise HTTPException(status_code=400, detail="query cannot be empty")
 
+    temp_dir = "temp_uploads"
+    os.makedirs(temp_dir, exist_ok=True)
+    
+    created_files = []
+    medical_bills_data = []
+    prescriptions_data = []
+
     try:
+        # Process Medical Bills
+        if request.medical_bill_ids:
+            for oid in request.medical_bill_ids:
+                try:
+                    file_path = get_file_from_db(oid, temp_dir)
+                    created_files.append(file_path)
+                    result = process_medical_bill(file_path)
+                    if result.get("is_medical_bill"):
+                        medical_bills_data.append(result)
+                except Exception as e:
+                    print(f"Error processing medical bill {oid}: {str(e)}")
+                    continue
+
+        # Process Prescriptions
+        if request.prescription_ids:
+            for oid in request.prescription_ids:
+                try:
+                    file_path = get_file_from_db(oid, temp_dir)
+                    created_files.append(file_path)
+                    result = process_prescription(file_path)
+                    if result.get("is_prescription"):
+                        prescriptions_data.append(result)
+                except Exception as e:
+                    print(f"Error processing prescription {oid}: {str(e)}")
+                    continue
+
         validator = HealthClaimService()
         analysis = validator.validate_claim(
             query=request.query, 
             object_ids=request.object_ids,
-            medical_bill_data=request.medical_bill_data,
-            prescription_data=request.prescription_data
+            medical_bill_data=medical_bills_data if medical_bills_data else None,
+            prescription_data=prescriptions_data if prescriptions_data else None
         )
         
         return {"analysis": analysis}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        # Cleanup temporary files
+        for file_path in created_files:
+            if os.path.exists(file_path):
+                try:
+                    os.remove(file_path)
+                except:
+                    pass

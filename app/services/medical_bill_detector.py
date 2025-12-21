@@ -2,8 +2,24 @@ import cv2
 import pytesseract
 import re
 import json
+import os
+import platform
 from datetime import datetime
 from app.services.hf_query import QueryHuggingFace
+
+# Configure Tesseract path for Windows if not in PATH
+if platform.system() == "Windows":
+    # Check common installation paths
+    possible_paths = [
+        r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+        r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
+        os.getenv("TESSERACT_CMD", "")
+    ]
+    
+    for path in possible_paths:
+        if path and os.path.exists(path):
+            pytesseract.pytesseract.tesseract_cmd = path
+            break
 
 hf_query = QueryHuggingFace()
 

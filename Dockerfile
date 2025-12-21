@@ -11,14 +11,22 @@ RUN apt-get update && apt-get install -y \
     tesseract-ocr \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy project files
+# Copy dependency definitions first to leverage Docker cache
 COPY pyproject.toml .
 COPY readme.md .
+
+# Create a dummy app structure to allow installing dependencies
+# This prevents re-downloading dependencies when only code changes
+RUN mkdir app && touch app/__init__.py && \
+    pip install --no-cache-dir . && \
+    rm -rf app
+
+# Copy project files
 COPY app/ ./app/
 COPY main.py .
 COPY weights/ ./weights/
 
-# Install dependencies
+# Re-install the package to include the actual code
 RUN pip install --no-cache-dir .
 RUN pip install uvicorn
 
