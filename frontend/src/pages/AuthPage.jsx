@@ -21,7 +21,7 @@ const AuthPage = () => {
         if (mode == "signup") {
             try {
                 console.log("heerr in the submit");
-                const response = await axios.post("http://localhost:3000/api/auth/signup", {
+                const response = await axios.post("http://localhost:8080/api/auth/signup", {
                     name: name,
                     email: email,
                     password: password,
@@ -36,10 +36,11 @@ const AuthPage = () => {
         }
         else {
             try {
-                const response = await axios.post("http://localhost:3000/api/auth/signin", {
+                const response = await axios.post("http://localhost:8080/api/auth/signin", {
                     email: email,
                     password: password,
                 });
+                console.log("Login successful:", response.data);
                 const userDetails = {
                     name: response.data.name,
                     email: response.data.email,

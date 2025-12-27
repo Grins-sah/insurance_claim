@@ -12,6 +12,7 @@ const Step1PolicyDetails = ({ nextStep }) => {
   const [inciType, setInciType] = useState("Accident / Damage Claim");
   const [date, setDate] = useState("");
   const [location, setLocation] = useState("");
+  const [userQuery, setUserQuery] = useState("");
 
   const onSave = () => {
     const detail = {
@@ -19,6 +20,7 @@ const Step1PolicyDetails = ({ nextStep }) => {
       inciType: inciType,
       date: date,
       location: location,
+      userQuery: userQuery,
     }
     sessionStorage.setItem('step1-info', JSON.stringify(detail));
     nextStep();
@@ -31,6 +33,7 @@ const Step1PolicyDetails = ({ nextStep }) => {
       setInciType(detail.inciType);
       setDate(detail.date);
       setLocation(detail.location);
+      if (detail.userQuery) setUserQuery(detail.userQuery);
     }
   }, [])
 
@@ -55,13 +58,20 @@ const Step1PolicyDetails = ({ nextStep }) => {
         <label htmlFor="incidentType" className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
           Type of Incident
         </label>
-        {type == "Vehicle Insurance" && (
+        {type == "Vehicle Insurance" ? (
           <select onChange={(e) => setInciType(e.target.value)} value={inciType} id="incidentType" className="w-full px-4 py-2.5 bg-gray-50 dark:bg-neutral-800 border border-gray-300 dark:border-neutral-700 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 dark:text-neutral-200">
             <option>Accident / Damage Claim</option>
             <option>Theft Claim</option>
             <option>Third-Party Claim</option>
             <option>Fire / Natural Calamity</option>
             <option>Windshield / Minor Damage</option>
+          </select>
+        ) : (
+           <select onChange={(e) => setInciType(e.target.value)} value={inciType} id="incidentType" className="w-full px-4 py-2.5 bg-gray-50 dark:bg-neutral-800 border border-gray-300 dark:border-neutral-700 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 dark:text-neutral-200">
+            <option>Medical Emergency</option>
+            <option>Hospitalization</option>
+            <option>Surgery</option>
+            <option>Routine Checkup</option>
           </select>
         )}
       </div>
@@ -82,6 +92,21 @@ const Step1PolicyDetails = ({ nextStep }) => {
         </div>
       </div>
 
+      {/* User Query */}
+      <div>
+        <label htmlFor="userQuery" className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
+          Describe the Incident / Claim
+        </label>
+        <textarea
+          id="userQuery"
+          rows="4"
+          value={userQuery}
+          onChange={(e) => setUserQuery(e.target.value)}
+          placeholder="Please describe what happened or the reason for the claim..."
+          className="w-full px-4 py-2.5 bg-gray-50 dark:bg-neutral-800 border border-gray-300 dark:border-neutral-700 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 dark:text-neutral-200"
+        ></textarea>
+      </div>
+
       <div className="flex justify-end pt-4">
         <button
           onClick={onSave}
@@ -99,13 +124,30 @@ const Step2Photos = ({ nextStep, prevStep }) => {
   const { user } = useContext(ContextAPI);
   const [vehiclePhotos, setVehiclePhotos] = useState({});
   const [uploading, setUploading] = useState(null);
+  const [type, setType] = useState("Vehicle Insurance");
+  const [userQuery, setUserQuery] = useState("");
+
+  useEffect(() => {
+    const step1 = JSON.parse(sessionStorage.getItem('step1-info'));
+    if (step1) {
+        setType(step1.type);
+        setUserQuery(step1.userQuery);
+    }
+    
+    const raw = sessionStorage.getItem("step2-info");
+    if (raw) {
+        const detail = JSON.parse(raw);
+        if (detail?.vehiclePhotos) {
+            setVehiclePhotos(detail.vehiclePhotos);
+        }
+    }
+  }, []);
 
   const uploadFile = async (file, field) => {
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("field", field);
     
-    const res = await axios.post("http://localhost:3000/api/upload/vehicle-photo", formData, {
+    const res = await axios.post("http://localhost:8080/upload", formData, {
       headers: {
         "Authorization": user.token
       }
@@ -115,7 +157,7 @@ const Step2Photos = ({ nextStep, prevStep }) => {
       throw new Error("Upload failed");
     }
 
-    return res.data; // { url, publicId }
+    return { ...res.data, object_id: res.data.fileId, url: URL.createObjectURL(file) }; 
   };
 
   const handleFileChange = (key) => async (e) => {
@@ -125,8 +167,7 @@ const Step2Photos = ({ nextStep, prevStep }) => {
     try {
       setUploading(key);
       const uploaded = await uploadFile(file, key);
-      console.log(uploaded?.url)
-      console.log(uploaded?._id)
+      console.log(uploaded?.object_id)
       setVehiclePhotos((prev) => ({
         ...prev,
         [key]: uploaded,
@@ -139,55 +180,73 @@ const Step2Photos = ({ nextStep, prevStep }) => {
     }
   };
 
-  const uploadedFiles = Object.entries(vehiclePhotos);
-  const allUploaded = [
-    "front",
-    "rear",
-    "leftSide",
-    "rightSide",
-    "numberPlate",
-    "chassisNumber",
-    "odometer",
-  ].every((k) => vehiclePhotos[k]);
-
-  const onSave = () => {
-    // before stroing it in sessionStorage scan through AI
-    // grins add api end points here
-
-    sessionStorage.setItem(
-      "step2-info",
-      JSON.stringify({ vehiclePhotos })
-    );
-    nextStep();
+  const getFields = () => {
+      if (type === "Health Insurance") {
+          return [
+              ["medicalBill", "Medical Bill"],
+              ["prescription", "Prescription"]
+          ];
+      }
+      return [
+        ["front", "Front View"],
+        ["rear", "Rear View"],
+        ["leftSide", "Left Side"],
+        ["rightSide", "Right Side"],
+        ["numberPlate", "Number Plate"],
+        ["chassisNumber", "Chassis Number"],
+        ["odometer", "Odometer"],
+      ];
   };
 
-  useEffect(() => {
-    const raw = sessionStorage.getItem("step2-info");
-    if (!raw) return;
+  const uploadedFiles = Object.entries(vehiclePhotos);
+  const allUploaded = getFields().every(([k]) => vehiclePhotos[k]);
 
-    const detail = JSON.parse(raw);
-    if (detail?.vehiclePhotos) {
-      setVehiclePhotos(detail.vehiclePhotos);
+  const onSave = async () => {
+    // before stroing it in sessionStorage scan through AI
+    if (type === "Vehicle Insurance") {
+        try {
+            const imageIds = Object.values(vehiclePhotos).map(p => p.object_id);
+            const response = await axios.post("http://localhost:8080/api/vehicle/claim-workflow", {
+                image_ids: imageIds,
+                policy_id: "POL-SAMPLE", 
+                user_description: userQuery || "User uploaded vehicle photos for claim"
+            }, {
+                headers: { "Authorization": user.token }
+            });
+
+            sessionStorage.setItem(
+                "step2-info",
+                JSON.stringify({ vehiclePhotos, analysis: response.data })
+            );
+            nextStep();
+        } catch (error) {
+            console.error("AI Analysis failed", error);
+            alert("AI Analysis failed, but proceeding.");
+            sessionStorage.setItem(
+                "step2-info",
+                JSON.stringify({ vehiclePhotos })
+            );
+            nextStep();
+        }
+    } else {
+        // For Health, we just save and proceed. Validation happens in Step 3.
+        sessionStorage.setItem(
+            "step2-info",
+            JSON.stringify({ vehiclePhotos })
+        );
+        nextStep();
     }
-  }, []);
+  };
 
   return (
     <div className="space-y-6">
       <h3 className="text-xl font-semibold text-gray-900 dark:text-neutral-100 mb-4">
-        2. Upload Vehicle Photos
+        2. {type === "Health Insurance" ? "Upload Medical Documents" : "Upload Vehicle Photos"}
       </h3>
 
       <div className="border border-dashed border-gray-300 dark:border-neutral-700 rounded-lg p-8 text-center bg-gray-50 dark:bg-neutral-800/50">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-          {[
-            ["front", "Front View"],
-            ["rear", "Rear View"],
-            ["leftSide", "Left Side"],
-            ["rightSide", "Right Side"],
-            ["numberPlate", "Number Plate"],
-            ["chassisNumber", "Chassis Number"],
-            ["odometer", "Odometer"],
-          ].map(([key, label]) => (
+          {getFields().map(([key, label]) => (
             <label
               key={key}
               className="flex flex-col gap-1 text-left text-sm text-gray-600 dark:text-neutral-400"
@@ -195,7 +254,7 @@ const Step2Photos = ({ nextStep, prevStep }) => {
               {label}
               <input
                 type="file"
-                accept="image/*"
+                accept="image/*,application/pdf"
                 onChange={handleFileChange(key)}
                 className="block w-full text-sm file:mr-4 file:py-2 file:px-4
                            file:rounded-lg file:border-0
@@ -250,7 +309,7 @@ const Step2Photos = ({ nextStep, prevStep }) => {
           disabled={!allUploaded}
           className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-medium transition shadow-md disabled:opacity-50"
         >
-          Next: AI Scan & Documentation <FiChevronRight />
+          Next: {type === "Health Insurance" ? "Additional Docs" : "AI Scan & Documentation"} <FiChevronRight />
         </button>
       </div>
     </div>
@@ -259,29 +318,40 @@ const Step2Photos = ({ nextStep, prevStep }) => {
 
 // --- STEP 3: Documentation ---
 const Step3Documentation = ({ nextStep, prevStep }) => {
+  const { user } = useContext(ContextAPI);
   const [type, setType] = useState("");
   const [inciType, setInciType] = useState("");
   const [vehiclePhotos, setVehiclePhotos] = useState({});
   const [uploading, setUploading] = useState(null);
+  const [userQuery, setUserQuery] = useState("");
+  const [step2Photos, setStep2Photos] = useState({});
 
   useEffect(() => {
-    const raw = sessionStorage.getItem('step1-info');
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      setType(parsed.type); 
-      setInciType(parsed.inciType);
+    const step1 = JSON.parse(sessionStorage.getItem('step1-info'));
+    if (step1) {
+      setType(step1.type); 
+      setInciType(step1.inciType);
+      setUserQuery(step1.userQuery);
+    }
+    const step2 = JSON.parse(sessionStorage.getItem('step2-info'));
+    if (step2 && step2.vehiclePhotos) {
+        setStep2Photos(step2.vehiclePhotos);
     }
   }, [])
 
   const uploadFile = async (file, field) => {
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("field", field);
-    const res = await axios.post("http://localhost:3000/api/upload/vehicle-photo", formData);
+    
+    const res = await axios.post("http://localhost:8080/upload", formData, {
+      headers: {
+        "Authorization": user.token
+      }
+    });
     if (!res) {
       throw new Error("Upload failed");
     }
-    return res.data;
+    return { ...res.data, object_id: res.data.fileId, url: URL.createObjectURL(file) };
   };
 
   const handleFileChange = (key) => async (e) => {
@@ -305,21 +375,51 @@ const Step3Documentation = ({ nextStep, prevStep }) => {
   };
 
   const uploadedFiles = Object.entries(vehiclePhotos);
-  const allUploaded = [
-    "front",
-    "rear",
-    "leftSide",
-    "rightSide",
-    "numberPlate",
-    "chassisNumber",
-    "odometer",
-  ].every((k) => vehiclePhotos[k]);
+  // Basic validation: at least one file uploaded
+  const allUploaded = uploadedFiles.length > 0;
 
-  const onSave = () => {
-    sessionStorage.setItem(
-      "step3-info", // Changed from step2-info to avoid overwrite
-      JSON.stringify({ vehiclePhotos })
-    );
+  const onSave = async () => {
+    if (type === "Health Insurance") {
+        try {
+            // Combine Step 2 and Step 3 photos
+            const medicalBillIds = step2Photos['medicalBill'] ? [step2Photos['medicalBill'].object_id] : [];
+            const prescriptionIds = step2Photos['prescription'] ? [step2Photos['prescription'].object_id] : [];
+            
+            // Add Step 3 docs if any (e.g. report)
+            const reportIds = vehiclePhotos['report'] ? [vehiclePhotos['report'].object_id] : [];
+            
+            const allIds = [
+                ...medicalBillIds,
+                ...prescriptionIds,
+                ...reportIds
+            ];
+            
+            const response = await axios.post("http://localhost:8080/api/health/validate-claim", {
+                object_ids: allIds,
+                query: userQuery || "Validate this health claim",
+                medical_bill_ids: medicalBillIds,
+                prescription_ids: prescriptionIds
+            }, {
+                headers: { "Authorization": user.token }
+            });
+             sessionStorage.setItem(
+                "step3-info",
+                JSON.stringify({ vehiclePhotos, analysis: response.data })
+            );
+        } catch (e) {
+            console.error(e);
+            alert("Health Claim Validation failed, but proceeding.");
+             sessionStorage.setItem(
+                "step3-info",
+                JSON.stringify({ vehiclePhotos })
+            );
+        }
+    } else {
+        sessionStorage.setItem(
+            "step3-info",
+            JSON.stringify({ vehiclePhotos })
+        );
+    }
     nextStep();
   };
 
@@ -333,23 +433,30 @@ const Step3Documentation = ({ nextStep, prevStep }) => {
     }
   }, []);
 
+  const getFields = () => {
+      if (type === "Health Insurance") {
+          return [
+              ["report", "Diagnostic Report"],
+              ["dischargeSummary", "Discharge Summary"]
+          ];
+      } else {
+          return [
+              ["dl", "Driving License"],
+              ["rc", "RC Book"],
+              ["fir", "FIR Copy (if applicable)"]
+          ];
+      }
+  };
+
   return (
     <div className="space-y-6">
       <h3 className="text-xl font-semibold text-gray-900 dark:text-neutral-100 mb-4">
-        3. Documentation
+        3. Additional Documentation
       </h3>
 
       <div className="border border-dashed border-gray-300 dark:border-neutral-700 rounded-lg p-8 text-center bg-gray-50 dark:bg-neutral-800/50">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-          {[
-            ["front", "Front View"], // Placeholder keys from remote code
-            ["rear", "Rear View"],
-            ["leftSide", "Left Side"],
-            ["rightSide", "Right Side"],
-            ["numberPlate", "Number Plate"],
-            ["chassisNumber", "Chassis Number"],
-            ["odometer", "Odometer"],
-          ].map(([key, label]) => (
+          {getFields().map(([key, label]) => (
             <label
               key={key}
               className="flex flex-col gap-1 text-left text-sm text-gray-600 dark:text-neutral-400"
@@ -357,7 +464,7 @@ const Step3Documentation = ({ nextStep, prevStep }) => {
               {label}
               <input
                 type="file"
-                accept="image/*"
+                accept="image/*,application/pdf"
                 onChange={handleFileChange(key)}
                 className="block w-full text-sm file:mr-4 file:py-2 file:px-4
                            file:rounded-lg file:border-0
@@ -422,6 +529,17 @@ const Step3Documentation = ({ nextStep, prevStep }) => {
 // --- STEP 4: Review and Submission ---
 const Step4Review = ({ prevStep }) => {
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [analysis, setAnalysis] = useState(null);
+
+  useEffect(() => {
+      const step2 = JSON.parse(sessionStorage.getItem('step2-info') || '{}');
+      const step3 = JSON.parse(sessionStorage.getItem('step3-info') || '{}');
+      if (step2.analysis) {
+          setAnalysis(step2.analysis);
+      } else if (step3.analysis) {
+          setAnalysis(step3.analysis);
+      }
+  }, []);
 
   const handleSubmit = () => {
     // In a real app: send data to backend, handle response, then set success state
@@ -466,6 +584,23 @@ const Step4Review = ({ prevStep }) => {
           <span className="font-medium text-gray-900 dark:text-neutral-200">2 files (Report, Photo)</span>
         </div>
       </div>
+
+      {/* AI Analysis Report */}
+      {analysis && (
+        <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-xl p-6 space-y-4">
+            <h4 className="text-lg font-bold text-indigo-600 dark:text-indigo-400 border-b border-indigo-200 dark:border-indigo-800 pb-2">AI Analysis Report</h4>
+            {analysis.claim_report && (
+                <div className="text-sm text-gray-700 dark:text-neutral-300 whitespace-pre-wrap">
+                    {analysis.claim_report}
+                </div>
+            )}
+            {analysis.analysis && (
+                 <div className="text-sm text-gray-700 dark:text-neutral-300 whitespace-pre-wrap">
+                    {typeof analysis.analysis === 'string' ? analysis.analysis : JSON.stringify(analysis.analysis, null, 2)}
+                </div>
+            )}
+        </div>
+      )}
 
       {/* Declaration Checkbox */}
       <div className="flex items-start pt-2">

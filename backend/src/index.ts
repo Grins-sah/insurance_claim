@@ -118,9 +118,8 @@ app.post("/api/auth/signin", async (req, res) => {
 })
 
 
-app.post(
-  "/api/upload/vehicle-photo",
-  upload.single("file"),userMiddleware,
+app.post("/api/upload/vehicle-photo",
+  upload.single("file"),
   async (req, res) => {
     try {
       console.log("Backend hit");
@@ -168,9 +167,180 @@ app.post(
   }
 );
 
-const PORT = process.env.PORT || 3000;
+const fileSchema = new mongoose.Schema({
+    filename: String,
+    contentType: String,
+    data: Buffer,
+    uploadDate: { type: Date, default: Date.now }
+});
+
+const FileModel =  mongoose.model('upload', fileSchema);
+
+app.post('/upload', upload.single('file'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).send('No file uploaded.');
+        }
+
+        const newFile = new FileModel({
+            filename: req.file.originalname,
+            contentType: req.file.mimetype,
+            data: req.file.buffer
+        });
+
+        await newFile.save();
+
+        res.status(201).send({ message: 'File uploaded successfully', fileId: newFile._id });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error uploading file');
+    }
+});
+
+
+
+const PYTHON_API_URL = process.env.PYTHON_API_URL || "http://localhost:8000";
+
+// Proxy Routes
+
+// Vehicle Detection
+app.post("/api/vehicle/detect", async (req, res) => {
+    try {
+        const { object_id } = req.body;
+        const response = await fetch(`${PYTHON_API_URL}/vehicle/detect_vehicle`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ object_id })
+        });
+        const data = await response.json();
+        res.status(response.status).json(data);
+    } catch (error) {
+        console.error("Proxy error:", error);
+        res.status(500).json({ error: "Error connecting to Python service" });
+    }
+});
+
+// Vehicle Orientation
+app.post("/api/vehicle/orientation", async (req, res) => {
+    try {
+        const { object_id } = req.body;
+        const response = await fetch(`${PYTHON_API_URL}/vehicle/orientation_detection`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ object_id })
+        });
+        const data = await response.json();
+        res.status(response.status).json(data);
+    } catch (error) {
+        console.error("Proxy error:", error);
+        res.status(500).json({ error: "Error connecting to Python service" });
+    }
+});
+
+// Vehicle Anomaly
+app.post("/api/vehicle/anomaly", async (req, res) => {
+    try {
+        const { object_id } = req.body;
+        const response = await fetch(`${PYTHON_API_URL}/vehicle/vehicle/anomaly-detection`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ object_id })
+        });
+        const data = await response.json();
+        res.status(response.status).json(data);
+    } catch (error) {
+        console.error("Proxy error:", error);
+        res.status(500).json({ error: "Error connecting to Python service" });
+    }
+});
+
+// Vehicle Claim Workflow
+app.post("/api/vehicle/claim-workflow", async (req, res) => {
+    try {
+        const { image_ids, policy_id, user_description } = req.body;
+        const response = await fetch(`${PYTHON_API_URL}/vehicle/process_claim_workflow`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ image_ids, policy_id, user_description })
+        });
+        const data = await response.json();
+        res.status(response.status).json(data);
+    } catch (error) {
+        console.error("Proxy error:", error);
+        res.status(500).json({ error: "Error connecting to Python service" });
+    }
+});
+
+// Health Medical Bill
+app.post("/api/health/medical-bill", async (req, res) => {
+    try {
+        const { object_id } = req.body;
+        const response = await fetch(`${PYTHON_API_URL}/health/process_medical_bill`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ object_id })
+        });
+        const data = await response.json();
+        res.status(response.status).json(data);
+    } catch (error) {
+        console.error("Proxy error:", error);
+        res.status(500).json({ error: "Error connecting to Python service" });
+    }
+});
+
+// Health Prescription
+app.post("/api/health/prescription", async (req, res) => {
+    try {
+        const { object_id } = req.body;
+        const response = await fetch(`${PYTHON_API_URL}/health/process_prescription`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ object_id })
+        });
+        const data = await response.json();
+        res.status(response.status).json(data);
+    } catch (error) {
+        console.error("Proxy error:", error);
+        res.status(500).json({ error: "Error connecting to Python service" });
+    }
+});
+
+// Health Validate Claim
+app.post("/api/health/validate-claim", async (req, res) => {
+    try {
+        const { object_ids, query, medical_bill_ids, prescription_ids } = req.body;
+        const response = await fetch(`${PYTHON_API_URL}/health/validate_claim`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ object_ids, query, medical_bill_ids, prescription_ids })
+        });
+        const data = await response.json();
+        res.status(response.status).json(data);
+    } catch (error) {
+        console.error("Proxy error:", error);
+        res.status(500).json({ error: "Error connecting to Python service" });
+    }
+});
+
+// RAG Process
+app.post("/api/rag/process/:object_id", async (req, res) => {
+    try {
+        const { object_id } = req.params;
+        const response = await fetch(`${PYTHON_API_URL}/rag/process/${object_id}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+        });
+        const data = await response.json();
+        res.status(response.status).json(data);
+    } catch (error) {
+        console.error("Proxy error:", error);
+        res.status(500).json({ error: "Error connecting to Python service" });
+    }
+});
+
+const PORT =8080;
 app.listen(PORT,()=>{
-    console.log("server running on port - 3000")
+    console.log("server running on port - 8080")
 })
 
 

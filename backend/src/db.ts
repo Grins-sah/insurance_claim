@@ -33,11 +33,11 @@ const userSchema = new Schema({
 export const userSchemaModel = mongoose.model("User",userSchema);
 
 const userFileSchema = new Schema({
-    userId:{type:mongoose.Types.ObjectId,ref:'User',required:true},
+    userId:{type:mongoose.Types.ObjectId,ref:'User',required:false},
     filename: String,
     contentType: String,
     data: Buffer,
     uploadDate: { type: Date, default: Date.now }
 })
 
-export const fileModel = mongoose.model("File",userFileSchema);
+export const fileModel = mongoose.model("File",userFileSchema, "uploads");

@@ -10,6 +10,8 @@ import CreateClaimPage from './pages/Customer/CreateClaimPage';
 import NotificationsPage from './pages/Customer/NotificationsPage';
 import ProfilePage from './pages/Customer/ProfilePage';
 import SettingsPage from './pages/Customer/SettingsPage';
+import UploadPage from './components/upload';
+import TestEndpointsPage from './pages/TestEndpointsPage';
 const App = () => {
     return (<div>
       <Routes>
@@ -23,6 +25,8 @@ const App = () => {
         <Route path='/customer/notifications' element={<NotificationsPage />}></Route>
         <Route path='/customer/profile' element={<ProfilePage />}></Route>
         <Route path='/customer/settings' element={<SettingsPage />}></Route>
+        <Route path='/upload' element={<div className='bg-gray-700 h-screen w-screen'><UploadPage/></div>}></Route>
+        <Route path='/test-endpoints' element={<TestEndpointsPage />}></Route>
         <Route path='/authority/dashboard' element={<AuthorityPage />}></Route>
 
       </Routes>
