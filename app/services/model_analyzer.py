@@ -6,7 +6,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 # Define the path to the model
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-MODEL_PATH = os.path.join(BASE_DIR, "weights", "best-fp16.tflite")
+MODEL_PATH = os.path.join(BASE_DIR, "best-fp16.tflite")
 
 # Class names for the YOLO model
 CLASS_NAMES = [
@@ -286,6 +286,6 @@ if __name__ == "__main__":
     for det in detections:
         class_name, confidence, bbox = det
         print(
-            f"  - Class: {class_name}, Confidence: {confidence:.2f}, BBox (normalized): {bbox}"
+            f"  - Class: {class_name}, Confidence: {confidence}, BBox (normalized): {bbox}"
         )
     print(f"Annotated image saved to: {annotated_img_path}")

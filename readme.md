@@ -95,7 +95,7 @@ Extracts details from a medical bill image.
 - **Request**:
   ```json
   {
-    "object_id": "string"
+    "object_id": "6947a230aa19e28e2f31d523"
   }
   ```
 - **Response**:
@@ -174,7 +174,7 @@ Extracts details from a doctor's prescription.
 - **Request**:
   ```json
   {
-    "object_id": "string"
+    "object_id": "69479f1f19b579dfafea785b"
   }
   ```
 - **Response**:
@@ -251,26 +251,36 @@ Detects vehicles in an image using YOLO.
 - **Request**:
   ```json
   {
-    "object_id": "string"
+    "object_id": "694e65efa7a5f798d501e03d"
   }
   ```
 - **Response**:
   ```json
   {
-      "vehicle_counter": 1,
+      "vehicle_counter": 2,
       "image_size": [
-          194,
-          259
+          1500,
+          1099
       ],
       "vehicle_data": [
           [
-              2.0,
-              0.3007952570915222,
+              2,
+              0.9607952570915222,
               [
-                  0.008064555935561657,
-                  0.07589368522167206,
-                  0.07089917361736298,
-                  0.26089179515838623
+                  0.40646034479141235,
+                  0.4852529466152191,
+                  0.690716564655304,
+                  0.7784079313278198
+              ]
+          ],
+          [
+              7,
+              0.9208293489728992,
+              [
+                  0.3642113208770752,
+                  0.08787299692630768,
+                  0.7294654846191406,
+                  0.4407508969306946
               ]
           ]
       ]
@@ -279,54 +289,50 @@ Detects vehicles in an image using YOLO.
 
 #### 6. Orientation Detection
 Analyzes vehicle orientation.
+
+![Vehicle Input Example](sample.jpeg)
+
 - **Endpoint**: `POST /orientation_detection`
 - **Request**:
   ```json
   {
-    "object_id": "string"
+    "object_id": "694e65efa7a5f798d501e03d"
   }
   ```
 - **Response**:
+
+![Orientation Detection Example](sample_output.jpeg)
+
   ```json
   {
       "vehicle_count": 3,
       "image_dimensions": [
-          259,
-          194
+          1500,
+          1099
       ],
       "detections": [
           [
-              "motorcycle_side",
-              1.0,
+              "car_back",
+              0.96,
               [
-                  0.0,
-                  0.0,
-                  0.8266843557357788,
-                  1.0
+                  0.40646034479141235,
+                  0.4852529466152191,
+                  0.690716564655304,
+                  0.7784079313278198
               ]
           ],
           [
-              "motorcycle_side",
+              "car_front",
               0.94,
               [
-                  0.41126778721809387,
-                  0.01994311809539795,
-                  1.0,
-                  1.0
-              ]
-          ],
-          [
-              "motorcycle_side",
-              0.52,
-              [
-                  8.459389209747314e-05,
-                  0.0,
-                  0.3739511966705322,
-                  0.9840468168258667
+                  0.3642113208770752,
+                  0.08787299692630768,
+                  0.7294654846191406,
+                  0.4407508969306946
               ]
           ]
       ],
-      "annotated_image_path": "A:\\insurance_claim_project\\output_images\\annotated_image72.jpeg"
+      "annotated_image_path": "output_images/annotated_image.jpeg"
   }
   ```
 
@@ -571,7 +577,6 @@ Upload a photo for vehicle claims.
    MONGO_URL=mongodb://localhost:27017/insurance
    PINECONE_API_KEY=your_pinecone_key
    HF_API_TOKEN=your_huggingface_token
-   # OPENAI_API_KEY=... (Optional, if switching back to OpenAI)
    ```
 
 ## Project Structure
@@ -595,8 +600,8 @@ Upload a photo for vehicle claims.
 ├── notebooks/               # Prototyping notebooks
 └── pyproject.toml           # Dependency configuration
 ```
-
+ 
 ## Development Notes
 
-- **PDF Handling**: The system automatically detects PDF binary data in MongoDB `data` fields and uses `pypdf` to extract text before embedding.
-- **Model Weights**: Ensure `yolov5su.pt` and `best-fp16.tflite` are present in the `weights/` directory for vehicle analysis features to work.
+- **PDF Handling** : The system automatically detects PDF binary data in MongoDB `data` fields and uses `pypdf` to extract text before embedding.
+- **Model Weights** : Ensure `yolov5su.pt` and `best-fp16.tflite` are present in the `weights/` directory for vehicle analysis features to work.
